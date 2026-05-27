@@ -3,9 +3,9 @@
 **Course:** CMSC 142 – Design and Analysis of Algorithms
 
 **Group Members:**
-- Ma. Christie Jude L. Tarre
+- Junel Arellano
 - Gabrielle Sumergido
-- Arellano
+- Ma. Christie Jude L. Tarre
 
 ---
 
