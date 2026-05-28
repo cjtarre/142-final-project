@@ -183,11 +183,25 @@ export function generateMetricsReport(lanes) {
  * @returns {Object} Improvements (positive = better)
  */
 export function compareMetrics(baseline, candidate) {
-    return {
-        makespanImprovement: (((baseline.makespan - candidate.makespan) / baseline.makespan) * 100).toFixed(2),
-        waitTimeImprovement: (((baseline.averageWaitTime - candidate.averageWaitTime) / baseline.averageWaitTime) * 100).toFixed(2),
-        idleTimeReduction: (((baseline.totalIdleTime - candidate.totalIdleTime) / baseline.totalIdleTime) * 100).toFixed(2),
-        utilizationImprovement: (candidate.utilization - baseline.utilization).toFixed(2),
-        fairnessImprovement: (candidate.fairnessMetric - baseline.fairnessMetric).toFixed(4),
-    };
+  function calculateImprovement(baselineValue, candidateValue) {
+    const base = Number(baselineValue) || 0;
+    const current = Number(candidateValue) || 0;
+
+    if (base === 0) {return "0.00";}
+    return (((base - current) / base) * 100).toFixed(2);}
+
+  function calculateDifference(baselineValue, candidateValue) {
+    const base = Number(baselineValue) || 0;
+    const current = Number(candidateValue) || 0;
+
+    return (current - base).toFixed(2);}
+  if (!baseline || !candidate) {return null;}
+
+  return {
+    makespanImprovement: calculateImprovement(baseline.makespan, candidate.makespan),
+    waitTimeImprovement: calculateImprovement(baseline.averageWaitTime, candidate.averageWaitTime),
+    idleTimeReduction: calculateImprovement(baseline.totalIdleTime, candidate.totalIdleTime),
+    utilizationImprovement: calculateDifference(baseline.utilization, candidate.utilization),
+    fairnessImprovement: calculateDifference(baseline.fairnessMetric, candidate.fairnessMetric),
+  };
 }

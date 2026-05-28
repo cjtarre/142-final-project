@@ -1,6 +1,11 @@
+
+
 function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
   function handleDrop(event) {
     event.preventDefault();
+
+    if (!onMoveLaneCustomer) return;
+
     const data = event.dataTransfer.getData("text/plain");
     if (!data) return;
 
@@ -9,8 +14,8 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
       if (parsed.sourceLaneId && parsed.customerId) {
         onMoveLaneCustomer(parsed.sourceLaneId, parsed.customerId, lane.id);
       }
-    } catch (error) {
-      // ignore invalid drag data
+    } catch {
+      return;// ignore invalid drag data
     }
   }
 
@@ -44,19 +49,23 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
       </div>
 
       <div className="customer-list">
-        {lane.customers.map((customer, index) => (
-          <div
-            key={customer.id}
-            className={`customer-card ${customer.processed ? "processed" : customer.active ? "processing" : "draggable"}`}
-            draggable={!customer.processed && !customer.active}
-            onDragStart={(event) => {
-              if (customer.processed || customer.active) return;
-              event.dataTransfer.setData(
-                "text/plain",
-                JSON.stringify({ sourceLaneId: lane.id, customerId: customer.id })
-              );
-            }}
-          >
+        {lane.customers.length === 0 ? (
+          <div className="empty-queue">No customers in lane</div>
+        ) : (
+          lane.customers.map((customer, index) => (
+            <div
+              key={customer.id}
+              className={`customer-card ${customer.processed ? "processed" : customer.active ? "processing" : "draggable"}`}
+              draggable={!customer.processed && !customer.active}
+              onDragStart={(event) => {
+                if (customer.processed || customer.active) return;
+                event.dataTransfer.setData(
+                  "text/plain",
+                  JSON.stringify({ sourceLaneId: lane.id, customerId: customer.id })
+                );
+              }}
+            >
+
             <div className="customer-card-header">
               <p>
                 {customer.name}
@@ -64,6 +73,7 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
                   <span className="customer-order">#{customer.order}</span>
                 )}
               </p>
+
               {customer.processed && (
                 <span className="customer-status">Processed</span>
               )}
@@ -99,9 +109,9 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
               </div>
             )}
           </div>
-        ))}
+          ))
+        )}
       </div>
-
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Settings, UserPlus, Users } from "lucide-react";
 
 function ControlPanel({
