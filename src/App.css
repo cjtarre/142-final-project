@@ -432,3 +432,46 @@ h2 {
   font-size: 13px;
   color: #4b5563;
 }
+
+/* Utilization styles */
+.utilization-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.util-bar {
+  width: 100%;
+  height: 10px;
+  background: #eef2ff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.util-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #059669);
+}
+
+.util-yellow .util-fill {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+
+.util-red .util-fill {
+  background: linear-gradient(90deg, #fb7185, #ef4444);
+}
+
+.time-saved-box {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #ecfeff;
+  border: 1px solid #67e8f9;
+}
+
+.time-saved-value {
+  font-size: 20px;
+  font-weight: 900;
+  color: #065f46;
+}

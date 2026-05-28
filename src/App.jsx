@@ -6,6 +6,15 @@ import ControlPanel from "./components/ControlPanel";
 import LaneBoard from "./components/LaneBoard";
 import ComparisonTable from "./components/ComparisonTable";
 
+import {
+  workloadMinutesForLane,
+  pickShortestLineByCount,
+  pickEFTLane,
+  computeUtilizations,
+  averageWait,
+  approximateTotalIdleTime,
+} from "./utils/metrics";
+
 function createLanes(count) {
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
@@ -22,6 +31,11 @@ function App() {
   const [status, setStatus] = useState("idle");
   const [customerId, setCustomerId] = useState(1);
   const [iteration, setIteration] = useState(0);
+  const [algorithm, setAlgorithm] = useState("eft");
+  const [timeSaved, setTimeSaved] = useState(0);
+  const [totalWaitShortest, setTotalWaitShortest] = useState(0);
+  const [totalWaitEFT, setTotalWaitEFT] = useState(0);
+  const [totalAssignedCount, setTotalAssignedCount] = useState(0);
 
   function handleStart() {
     setStatus("running");
@@ -55,16 +69,23 @@ function App() {
       return;
     }
 
-    let targetLane = lanes[0];
+    const shortest = pickShortestLineByCount(lanes);
+    const eft = pickEFTLane(lanes, Number(customerItems));
 
-    for (const lane of lanes) {
-      if (lane.customers.length < targetLane.customers.length) {
-        targetLane = lane;
-      }
-    }
+    const waitShortest = workloadMinutesForLane(shortest);
+    const waitEFT = workloadMinutesForLane(eft);
+    const saved = Math.max(0, waitShortest - waitEFT);
+
+    setTimeSaved((s) => +(s + saved).toFixed(2));
+    setTotalWaitShortest((t) => t + waitShortest);
+    setTotalWaitEFT((t) => t + waitEFT);
+    setTotalAssignedCount((c) => c + 1);
+
+    // decide which lane to mutate based on selected algorithm
+    const assignLane = algorithm === "shortest" ? shortest : eft || shortest;
 
     const updatedLanes = lanes.map((lane) => {
-      if (lane.id === targetLane.id) {
+      if (lane.id === assignLane.id) {
         return {
           ...lane,
           customers: [
@@ -105,11 +126,29 @@ function App() {
           setCustomerItems={setCustomerItems}
           onAddCustomer={handleAddCustomer}
           createLanes={createLanes}
+          algorithm={algorithm}
+          setAlgorithm={setAlgorithm}
+          timeSaved={timeSaved}
         />
 
         <div className="content-area">
-          <LaneBoard lanes={lanes} status={status} iteration={iteration} />
-          <ComparisonTable />
+          <LaneBoard
+            lanes={lanes}
+            status={status}
+            iteration={iteration}
+            utilizationMap={computeUtilizations(lanes)}
+          />
+
+          <ComparisonTable
+            avgWaitShortest={averageWait(totalWaitShortest, totalAssignedCount)}
+            avgWaitEFT={averageWait(totalWaitEFT, totalAssignedCount)}
+            improvement={
+              averageWait(totalWaitShortest, totalAssignedCount) -
+              averageWait(totalWaitEFT, totalAssignedCount)
+            }
+            totalIdleShortest={approximateTotalIdleTime(lanes, computeUtilizations(lanes))}
+            totalIdleEFT={approximateTotalIdleTime(lanes, computeUtilizations(lanes))}
+          />
         </div>
       </main>
     </div>

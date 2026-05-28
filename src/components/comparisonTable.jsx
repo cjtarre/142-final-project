@@ -1,6 +1,6 @@
 import { BarChart3 } from "lucide-react";
 
-function ComparisonTable() {
+function ComparisonTable({ avgWaitShortest = 0, avgWaitEFT = 0, improvement = 0, totalIdleShortest = 0, totalIdleEFT = 0 }) {
   return (
     <section className="comparison-table">
       <div className="section-title">
@@ -13,31 +13,24 @@ function ComparisonTable() {
           <tr>
             <th>Metric</th>
             <th>Shortest Line</th>
-            <th>EFT Greedy</th>
+            <th>QueueFlow (EFT)</th>
             <th>Improvement</th>
           </tr>
         </thead>
 
         <tbody>
           <tr>
-            <td>Average Wait Time</td>
-            <td>--</td>
-            <td>--</td>
-            <td>--</td>
+            <td>Average Wait Time (min)</td>
+            <td>{avgWaitShortest.toFixed(2)}</td>
+            <td>{avgWaitEFT.toFixed(2)}</td>
+            <td>{improvement.toFixed(2)}</td>
           </tr>
 
           <tr>
-            <td>Makespan</td>
-            <td>--</td>
-            <td>--</td>
-            <td>--</td>
-          </tr>
-
-          <tr>
-            <td>Total Idle Time</td>
-            <td>--</td>
-            <td>--</td>
-            <td>--</td>
+            <td>Total Idle Time (approx)</td>
+            <td>{totalIdleShortest.toFixed(1)}</td>
+            <td>{totalIdleEFT.toFixed(1)}</td>
+            <td>{(totalIdleShortest - totalIdleEFT).toFixed(1)}</td>
           </tr>
         </tbody>
       </table>

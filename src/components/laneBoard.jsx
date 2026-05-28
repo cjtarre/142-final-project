@@ -1,7 +1,7 @@
 import { ShoppingCart } from "lucide-react";
 import LaneCard from "./LaneCard";
 
-function LaneBoard({ lanes, status, iteration }) {
+function LaneBoard({ lanes, status, iteration, utilizationMap = {} }) {
   return (
     <section className="lane-board">
       <div className="lane-board-header">
@@ -23,7 +23,7 @@ function LaneBoard({ lanes, status, iteration }) {
 
       <div className="lane-grid">
         {lanes.map((lane) => (
-          <LaneCard key={lane.id} lane={lane} />
+          <LaneCard key={lane.id} lane={lane} utilization={utilizationMap[lane.id]} />
         ))}
       </div>
     </section>

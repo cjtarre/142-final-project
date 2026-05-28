@@ -9,6 +9,9 @@ function ControlPanel({
   setCustomerItems,
   onAddCustomer,
   createLanes,
+  algorithm,
+  setAlgorithm,
+  timeSaved,
 }) {
   function handleLaneCountChange(e) {
     const count = Number(e.target.value);
@@ -98,6 +101,19 @@ function ControlPanel({
           <span>3</span>
           <p>Assign the incoming customer to the chosen lane.</p>
         </div>
+      </div>
+
+      <div className="form-group">
+        <label>Algorithm</label>
+        <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+          <option value="shortest">Shortest Line</option>
+          <option value="eft">QueueFlow Optimizer (EFT)</option>
+        </select>
+      </div>
+
+      <div className="time-saved-box">
+        <h3>Time Saved</h3>
+        <p className="time-saved-value">{timeSaved} min</p>
       </div>
 
       <div className="members-box">

@@ -1,6 +1,11 @@
-function LaneCard({ lane }) {
+function LaneCard({ lane, utilization = 0 }) {
+  const util = Math.max(0, Math.min(1, utilization || 0));
+  let utilClass = "util-green";
+  if (util >= 0.8) utilClass = "util-red";
+  else if (util >= 0.5) utilClass = "util-yellow";
+
   return (
-    <div className={`lane-card ${lane.selected ? "selected-lane" : ""}`}>
+    <div className={`lane-card ${lane.selected ? "selected-lane" : ""} ${utilClass}`}>
       <h3>
         LANE {lane.id}
         {lane.selected && " (Selected)"}
@@ -9,6 +14,13 @@ function LaneCard({ lane }) {
       <p className="lane-speed">
         Speed: {lane.speed} items/min
       </p>
+
+      <div className="utilization-row">
+        <div className="util-bar">
+          <div className="util-fill" style={{ width: `${Math.round(util * 100)}%` }} />
+        </div>
+        <small>{Math.round(util * 100)}%</small>
+      </div>
 
       <div className="customer-list">
         {lane.customers.map((customer) => (
