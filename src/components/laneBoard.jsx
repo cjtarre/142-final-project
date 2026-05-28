@@ -1,7 +1,8 @@
 import { ShoppingCart } from "lucide-react";
 import LaneCard from "./LaneCard";
+import { computeUtilizations } from "../utils/metrics";
 
-function LaneBoard({ lanes, status, iteration, utilizationMap = {} }) {
+function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
   return (
     <section className="lane-board">
       <div className="lane-board-header">
@@ -9,21 +10,19 @@ function LaneBoard({ lanes, status, iteration, utilizationMap = {} }) {
           <ShoppingCart size={18} />
           <h2>Lane Status</h2>
         </div>
-
-        <div className="simulation-meta">
-          <span className="iteration-badge">
-            Iteration: {iteration}
-          </span>
-
-          <span className={`status-badge ${status}`}>
-            {status}
-          </span>
-        </div>
       </div>
 
       <div className="lane-grid">
         {lanes.map((lane) => (
-          <LaneCard key={lane.id} lane={lane} utilization={utilizationMap[lane.id]} />
+          <LaneCard
+            key={lane.id}
+            lane={lane}
+            utilizationMap={computeUtilizations(lanes)}
+            onSpeedChange={onSpeedChange}
+            onRemoveLaneCustomer={onRemoveLaneCustomer}
+            onMoveLaneCustomer={onMoveLaneCustomer}
+            onReorderLaneCustomer={onReorderLaneCustomer}
+          />
         ))}
       </div>
     </section>

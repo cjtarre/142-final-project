@@ -1,6 +1,11 @@
 import { BarChart3 } from "lucide-react";
 
-function ComparisonTable({ avgWaitShortest = 0, avgWaitEFT = 0, improvement = 0, totalIdleShortest = 0, totalIdleEFT = 0 }) {
+function ComparisonTable({ metricsEFT, metricsSLF, comparison }) {
+  const formatValue = (value) => {
+    if (value === null || value === undefined || value === "--") return "--";
+    return typeof value === "number" ? value.toFixed(2) : value;
+  };
+
   return (
     <section className="comparison-table">
       <div className="section-title">
@@ -12,25 +17,68 @@ function ComparisonTable({ avgWaitShortest = 0, avgWaitEFT = 0, improvement = 0,
         <thead>
           <tr>
             <th>Metric</th>
-            <th>Shortest Line</th>
-            <th>QueueFlow (EFT)</th>
-            <th>Improvement</th>
+            <th>Shortest Line First</th>
+            <th>EFT Greedy</th>
+            <th>Improvement (%)</th>
           </tr>
         </thead>
 
         <tbody>
           <tr>
-            <td>Average Wait Time (min)</td>
-            <td>{avgWaitShortest.toFixed(2)}</td>
-            <td>{avgWaitEFT.toFixed(2)}</td>
-            <td>{improvement.toFixed(2)}</td>
+            <td>Makespan (Total Time)</td>
+            <td>{metricsSLF ? formatValue(metricsSLF.makespan) : "--"}</td>
+            <td>{metricsEFT ? formatValue(metricsEFT.makespan) : "--"}</td>
+            <td>
+              {comparison?.makespanImprovement
+                ? `+${comparison.makespanImprovement}%`
+                : "--"}
+            </td>
           </tr>
 
           <tr>
-            <td>Total Idle Time (approx)</td>
-            <td>{totalIdleShortest.toFixed(1)}</td>
-            <td>{totalIdleEFT.toFixed(1)}</td>
-            <td>{(totalIdleShortest - totalIdleEFT).toFixed(1)}</td>
+            <td>Average Wait Time</td>
+            <td>{metricsSLF ? formatValue(metricsSLF.averageWaitTime) : "--"}</td>
+            <td>{metricsEFT ? formatValue(metricsEFT.averageWaitTime) : "--"}</td>
+            <td>
+              {comparison?.waitTimeImprovement
+                ? `+${comparison.waitTimeImprovement}%`
+                : "--"}
+            </td>
+          </tr>
+
+          <tr>
+            <td>Total Idle Time</td>
+            <td>{metricsSLF ? formatValue(metricsSLF.totalIdleTime) : "--"}</td>
+            <td>{metricsEFT ? formatValue(metricsEFT.totalIdleTime) : "--"}</td>
+            <td>
+              {comparison?.idleTimeReduction === "-Infinity"
+                ? "--"
+                : comparison?.idleTimeReduction
+                ? `${comparison.idleTimeReduction}%`
+                : "--"}
+            </td>
+          </tr>
+
+          <tr>
+            <td>System Utilization (%)</td>
+            <td>{metricsSLF ? formatValue(metricsSLF.utilization) : "--"}</td>
+            <td>{metricsEFT ? formatValue(metricsEFT.utilization) : "--"}</td>
+            <td>
+              {comparison?.utilizationImprovement
+                ? `${comparison.utilizationImprovement}pp`
+                : "--"}
+            </td>
+          </tr>
+
+          <tr>
+            <td>Average Queue Length</td>
+            <td>
+              {metricsSLF ? formatValue(metricsSLF.averageQueueLength) : "--"}
+            </td>
+            <td>
+              {metricsEFT ? formatValue(metricsEFT.averageQueueLength) : "--"}
+            </td>
+            <td>--</td>
           </tr>
         </tbody>
       </table>
