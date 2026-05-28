@@ -1,32 +1,21 @@
+import { useState } from "react";
 import { Settings, UserPlus, Users } from "lucide-react";
 
 function ControlPanel({
   numberOfLanes,
-  setNumberOfLanes,
-  lanes,
-  setLanes,
-  customerItems,
-  setCustomerItems,
-  onAddCustomer,
-  createLanes,
+  onSetLaneCount,
+  customerDraft,
+  onChangeCustomerDraft,
+  pendingCustomers,
+  onStageCustomer,
+  onSelectPendingCustomer,
+  onUpdatePendingCustomer,
+  onRemovePendingCustomer,
+  onMovePendingCustomer,
 }) {
-  function handleLaneCountChange(e) {
-    const count = Number(e.target.value);
-    setNumberOfLanes(count);
-    setLanes(createLanes(count));
-  }
-
-  function handleSpeedChange(laneId, value) {
-    const updatedLanes = lanes.map((lane) => {
-      if (lane.id === laneId) {
-        return { ...lane, speed: value };
-      }
-
-      return lane;
-    });
-
-    setLanes(updatedLanes);
-  }
+  const handleAddCustomerClick = () => {
+    onStageCustomer();
+  };
 
   return (
     <aside className="control-panel">
@@ -37,67 +26,120 @@ function ControlPanel({
 
       <div className="form-group">
         <label>Number of Lanes</label>
-        <select value={numberOfLanes} onChange={handleLaneCountChange}>
-          <option value={1}>1</option>
-          <option value={2}>2</option>
-          <option value={3}>3</option>
-          <option value={4}>4</option>
-          <option value={5}>5</option>
-          <option value={6}>6</option>
-        </select>
-      </div>
-
-      <h3>Cashier Speeds</h3>
-
-      {lanes.map((lane) => (
-        <div className="speed-row" key={lane.id}>
-          <span>Lane {lane.id}</span>
-          <input
-            type="number"
-            min="1"
-            placeholder="Speed"
-            value={lane.speed}
-            onChange={(e) => handleSpeedChange(lane.id, e.target.value)}
-          />
-          <small>items/min</small>
-        </div>
-      ))}
-
-      <h3>Add Customer</h3>
-
-      <div className="form-group">
-        <label>Items</label>
         <input
           type="number"
           min="1"
-          placeholder="Enter item count"
-          value={customerItems}
-          onChange={(e) => setCustomerItems(e.target.value)}
+          max="100"
+          className="lane-count-input"
+          value={numberOfLanes}
+          onChange={(e) => onSetLaneCount(Math.max(1, Number(e.target.value)))}
         />
       </div>
 
-      <button className="add-btn" onClick={onAddCustomer}>
-        <UserPlus size={16} />
-        Add Customer
-      </button>
+      <div className="customer-input-drawer">
+        <button
+          className="add-btn drawer-toggle"
+          type="button"
+          onClick={handleAddCustomerClick}
+        >
+          <UserPlus size={16} />
+          Add Customer
+        </button>
 
-      <div className="logic-box">
-        <h3>Algorithm Overview</h3>
+        <div className="drawer-content">
+          <div className="form-group">
+            <label>Name</label>
+            <input
+              type="text"
+              placeholder="Customer name"
+              value={customerDraft.name}
+              onChange={(e) => onChangeCustomerDraft("name", e.target.value)}
+            />
+          </div>
 
-        <div className="logic-step">
-          <span>1</span>
-          <p>Compute the projected finish time for every checkout lane.</p>
+          <div className="form-group">
+            <label>Items</label>
+            <input
+              type="number"
+              min="1"
+              placeholder="Enter item count"
+              value={customerDraft.items}
+              onChange={(e) => onChangeCustomerDraft("items", e.target.value)}
+            />
+          </div>
         </div>
+      </div>
 
-        <div className="logic-step">
-          <span>2</span>
-          <p>Select the lane with the earliest completion time.</p>
-        </div>
+      <div className="pending-list">
+        <h3>Staged Customers</h3>
+        {pendingCustomers.length === 0 ? (
+          <p className="pending-empty">No customer staged yet. Add one to queue it for the next start.</p>
+        ) : (
+          pendingCustomers.map((customer, index) => (
+            <div
+              key={customer.tempId}
+              className={`pending-card ${customer.minimized ? "minimized" : "expanded"}`}
+            >
+              <div className="pending-card-header">
+                <button
+                  type="button"
+                  className="pending-toggle"
+                  onClick={() => onSelectPendingCustomer(customer.tempId)}
+                >
+                  <span>{customer.name}</span>
+                  <span>{customer.items} items</span>
+                </button>
+                <div className="pending-card-actions">
+                  <button
+                    type="button"
+                    className="pending-action-btn"
+                    onClick={() => onMovePendingCustomer(customer.tempId, "up")}
+                    disabled={index === 0}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="pending-action-btn"
+                    onClick={() => onMovePendingCustomer(customer.tempId, "down")}
+                    disabled={index === pendingCustomers.length - 1}
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    className="pending-action-btn remove-btn"
+                    onClick={() => onRemovePendingCustomer(customer.tempId)}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
 
-        <div className="logic-step">
-          <span>3</span>
-          <p>Assign the incoming customer to the chosen lane.</p>
-        </div>
+              {!customer.minimized && (
+                <div className="pending-details">
+                  <div className="form-group">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={customer.name}
+                      onChange={(e) => onUpdatePendingCustomer(customer.tempId, "name", e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Items</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={customer.items}
+                      onChange={(e) => onUpdatePendingCustomer(customer.tempId, "items", e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       <div className="members-box">
@@ -105,7 +147,6 @@ function ControlPanel({
           <Users size={14} />
           <h3>Project Members</h3>
         </div>
-
         <p>Arellano</p>
         <p>Sumergido</p>
         <p>Tarre</p>
