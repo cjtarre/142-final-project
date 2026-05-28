@@ -11,7 +11,7 @@ import { createLane, createLanes, withLaneSpeed, calculateLaneNextAvailable } fr
 import { createPendingCustomerDraft, createPendingCustomer, updatePendingCustomerDraft, 
           updatePendingCustomer as updatePendingCustomerModel, togglePendingCustomerMinimized, createLaneCustomer } from "./models/customer";
 import { enqueue, moveItem, updateItem, removeItem } from "./models/queue";
-import { generateMetricsReport, compareMetrics } from "./utils/metrics";
+import { generateMetricsReport, compareMetrics, computeUtilizations } from "./utils/metrics";
 
 function App() {
   const [numberOfLanes, setNumberOfLanes] = useState(3);
@@ -21,6 +21,7 @@ function App() {
   const [pendingCustomers, setPendingCustomers] = useState([]);
   const [status, setStatus] = useState("idle");
   const [iteration, setIteration] = useState(0);
+  const [algorithm, setAlgorithm] = useState("eft");
   const [metricsEFT, setMetricsEFT] = useState(null);
   const [metricsSLF, setMetricsSLF] = useState(null);
   const [comparison, setComparison] = useState(null);
@@ -342,12 +343,16 @@ function App() {
           onUpdatePendingCustomer={updatePendingCustomer}
           onRemovePendingCustomer={removePendingCustomer}
           onMovePendingCustomer={movePendingCustomer}
+          algorithm={algorithm}
+          setAlgorithm={setAlgorithm}
+          timeSaved={0}
         />
 
         <div className="content-area">
           <LaneBoard
             lanes={lanes}
             status={status}
+            utilizationMap={computeUtilizations(lanes)}
             onSpeedChange={handleSpeedChange}
             onRemoveLaneCustomer={removeLaneCustomer}
             onMoveLaneCustomer={moveLaneCustomer}

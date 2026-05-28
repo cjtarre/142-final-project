@@ -11,6 +11,9 @@ function ControlPanel({
   onUpdatePendingCustomer,
   onRemovePendingCustomer,
   onMovePendingCustomer,
+  algorithm,
+  setAlgorithm,
+  timeSaved,
 }) {
   const handleAddCustomerClick = () => {
     onStageCustomer();
@@ -139,6 +142,19 @@ function ControlPanel({
             </div>
           ))
         )}
+      </div>
+
+      <div className="form-group">
+        <label>Algorithm</label>
+        <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+          <option value="shortest">Shortest Line</option>
+          <option value="eft">QueueFlow Optimizer (EFT)</option>
+        </select>
+      </div>
+
+      <div className="time-saved-box">
+        <h3>Time Saved</h3>
+        <p className="time-saved-value">{timeSaved} min</p>
       </div>
 
       <div className="members-box">

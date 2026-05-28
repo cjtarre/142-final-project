@@ -1,5 +1,6 @@
 import { ShoppingCart } from "lucide-react";
 import LaneCard from "./LaneCard";
+import { computeUtilizations } from "../utils/metrics";
 
 function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
   return (
@@ -16,6 +17,7 @@ function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCusto
           <LaneCard
             key={lane.id}
             lane={lane}
+            utilizationMap={computeUtilizations(lanes)}
             onSpeedChange={onSpeedChange}
             onRemoveLaneCustomer={onRemoveLaneCustomer}
             onMoveLaneCustomer={onMoveLaneCustomer}

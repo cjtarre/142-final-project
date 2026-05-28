@@ -76,8 +76,8 @@ export function calculateUtilization(lanes) {
     }, 0);
 
     const totalWork = lanes.reduce((sum, lane) => {
-        return sum + lane.customers.reduce((sum, customer) => {
-            return sum + Number(customer.items || 0);
+        return sum + lane.customers.reduce((customerSum, customer) => {
+            return customerSum + Number(customer.items || 0);
         }, 0);
     }, 0);
 
@@ -153,6 +153,21 @@ export function calculateFairnessMetric(lanes) {
     // Convert to fairness score (higher = more fair)
     // Using 1 / (1 + cv) to get score between 0 and 1
     return 1 / (1 + coefficientOfVariation);
+}
+
+export function computeUtilizations(lanes) {
+  const workloads = lanes.map((lane) => {
+    const totalItems = lane.customers.reduce((sum, customer) => {return sum + Number(customer.processed ? 0 : customer.items || 0);}, 0);
+    const speed = Number(lane.speed) || 1;
+
+    return {id: lane.id, workload: totalItems / speed,};
+  });
+
+  const maxWorkload = Math.max(...workloads.map((lane) => lane.workload),1);
+  const utilizationMap = {};
+
+  for (const lane of workloads) {utilizationMap[lane.id] = Math.min(1, lane.workload / maxWorkload || 0); }
+  return utilizationMap;
 }
 
 /**
