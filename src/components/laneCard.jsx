@@ -64,12 +64,18 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
                   <span className="customer-order">#{customer.order}</span>
                 )}
               </p>
-              <div className="customer-card-actions">
+              {customer.processed && (
+                <span className="customer-status">Processed</span>
+              )}
+            </div>
+            <span>{customer.items} items</span>
+            {!customer.processed && !customer.active && (
+              <div className="customer-card-controls controls">
                 <button
                   type="button"
                   className="customer-action-btn"
                   onClick={() => onReorderLaneCustomer(lane.id, customer.id, "up")}
-                  disabled={index === 0 || customer.processed || customer.active || lane.customers[index - 1]?.processed || lane.customers[index - 1]?.active}
+                  disabled={index === 0 || lane.customers[index - 1]?.processed || lane.customers[index - 1]?.active}
                   title="Move left"
                 >
                   ←
@@ -78,23 +84,20 @@ function LaneCard({ lane, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustome
                   type="button"
                   className="customer-action-btn"
                   onClick={() => onReorderLaneCustomer(lane.id, customer.id, "down")}
-                  disabled={index === lane.customers.length - 1 || customer.processed || customer.active || lane.customers[index + 1]?.processed || lane.customers[index + 1]?.active}
+                  disabled={index === lane.customers.length - 1 || lane.customers[index + 1]?.processed || lane.customers[index + 1]?.active}
                   title="Move right"
                 >
                   →
                 </button>
-                {!customer.processed && !customer.active && (
-                  <button
-                    type="button"
-                    className="lane-customer-remove"
-                    onClick={() => onRemoveLaneCustomer(lane.id, customer.id)}
-                  >
-                    ×
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="lane-customer-remove"
+                  onClick={() => onRemoveLaneCustomer(lane.id, customer.id)}
+                >
+                  ×
+                </button>
               </div>
-            </div>
-            <span>{customer.items} items</span>
+            )}
           </div>
         ))}
       </div>

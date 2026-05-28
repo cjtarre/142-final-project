@@ -443,9 +443,28 @@ h2 {
 }
 
 .customer-card.processed {
-  border-color: #d1d5db;
-  background-color: #f3f4f6;
-  color: #6b7280;
+  border-color: #94a3b8;
+  background-color: #e2e8f0;
+  color: #475569;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.3);
+}
+
+.customer-card.processed p,
+.customer-card.processed span {
+  color: #475569;
+}
+
+.customer-card.processed .customer-order {
+  color: #475569;
+}
+
+.customer-card.processed .customer-status {
+  background-color: #cbd5e1;
+  color: #475569;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .customer-card p {
@@ -455,6 +474,18 @@ h2 {
 
 .customer-card span {
   display: block;
+}
+
+.customer-card-controls {
+  margin-top: 12px;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.customer-card-controls .customer-action-btn,
+.customer-card-controls .lane-customer-remove {
+  padding: 6px 10px;
+  min-width: 34px;
 }
 
 .customer-card.draggable {
