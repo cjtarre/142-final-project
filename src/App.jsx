@@ -6,10 +6,12 @@ import ControlPanel from "./components/controlPanel";
 import LaneBoard from "./components/LaneBoard";
 import ComparisonTable from "./components/ComparisonTable";
 import { assignCustomerEFT } from "./algorithms/eftGreedy";
+import { assignCustomerSLF } from "./algorithms/shortestLineFirst";
 import { createLane, createLanes, withLaneSpeed, calculateLaneNextAvailable } from "./models/lane";
 import { createPendingCustomerDraft, createPendingCustomer, updatePendingCustomerDraft, 
           updatePendingCustomer as updatePendingCustomerModel, togglePendingCustomerMinimized, createLaneCustomer } from "./models/customer";
 import { enqueue, moveItem, updateItem, removeItem } from "./models/queue";
+import { generateMetricsReport, compareMetrics } from "./utils/metrics";
 
 function App() {
   const [numberOfLanes, setNumberOfLanes] = useState(3);
@@ -19,11 +21,30 @@ function App() {
   const [pendingCustomers, setPendingCustomers] = useState([]);
   const [status, setStatus] = useState("idle");
   const [iteration, setIteration] = useState(0);
+  const [metricsEFT, setMetricsEFT] = useState(null);
+  const [metricsSLF, setMetricsSLF] = useState(null);
+  const [comparison, setComparison] = useState(null);
 
   function handleStart() {
     setLanes((prevLanes) => {
       const assignedLanes = assignPendingCustomersToLanes(prevLanes, pendingCustomers);
-      return processLaneIteration(assignedLanes);
+      const processedLanes = processLaneIteration(assignedLanes);
+      
+      // Calculate metrics for both EFT (used in main display) and SLF
+      const metricsEFTReport = generateMetricsReport(processedLanes);
+      setMetricsEFT(metricsEFTReport);
+      
+      // Also calculate SLF metrics for comparison
+      const lanesWithSLF = assignPendingCustomersToLanesWithSLF(prevLanes, pendingCustomers);
+      const processedLanesSLF = processLaneIteration(lanesWithSLF);
+      const metricsSLFReport = generateMetricsReport(processedLanesSLF);
+      setMetricsSLF(metricsSLFReport);
+      
+      // Calculate comparison
+      const comp = compareMetrics(metricsSLFReport, metricsEFTReport);
+      setComparison(comp);
+      
+      return processedLanes;
     });
 
     if (pendingCustomers.length > 0) {
@@ -43,6 +64,9 @@ function App() {
     setPendingCustomers([]);
     setStatus("idle");
     setIteration(0);
+    setMetricsEFT(null);
+    setMetricsSLF(null);
+    setComparison(null);
   }
 
   function handleLaneCountChange(count) {
@@ -138,6 +162,32 @@ function App() {
       });
 
       return assignCustomerEFT(currentLanes, newCustomer);
+    }, lanesWithoutOrderLabels);
+  }
+
+  function assignPendingCustomersToLanesWithSLF(prevLanes, stagedCustomers) {
+    if (stagedCustomers.length === 0) {
+      return prevLanes;
+    }
+
+    let nextId = customerId;
+    const lanesWithoutOrderLabels = prevLanes.map((lane) => ({
+      ...lane,
+      customers: lane.customers.map((customer) => ({
+        ...customer,
+        showOrder: false,
+      })),
+    }));
+
+    return stagedCustomers.reduce((currentLanes, pending, index) => {
+      const newCustomer = createLaneCustomer({
+        id: nextId++,
+        name: pending.name,
+        items: pending.items,
+        order: index + 1,
+      });
+
+      return assignCustomerSLF(currentLanes, newCustomer);
     }, lanesWithoutOrderLabels);
   }
 
@@ -304,7 +354,11 @@ function App() {
             onMoveLaneCustomer={moveLaneCustomer}
             onReorderLaneCustomer={reorderLaneCustomer}
           />
-          <ComparisonTable />
+          <ComparisonTable 
+            metricsEFT={metricsEFT}
+            metricsSLF={metricsSLF}
+            comparison={comparison}
+          />
         </div>
       </main>
     </div>
