@@ -18,7 +18,9 @@ function Header({ iteration, onStart, onReset }) {
             </div>
           </div>
         </div>
-        <p className="iteration-text">Iteration: {iteration}</p>
+        <div className="simulation-meta">
+          <span className="iteration-badge">Iteration: {iteration}</span>
+        </div>
       </div>
 
       <div className="controls">

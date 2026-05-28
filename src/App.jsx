@@ -348,7 +348,6 @@ function App() {
           <LaneBoard
             lanes={lanes}
             status={status}
-            iteration={iteration}
             onSpeedChange={handleSpeedChange}
             onRemoveLaneCustomer={removeLaneCustomer}
             onMoveLaneCustomer={moveLaneCustomer}

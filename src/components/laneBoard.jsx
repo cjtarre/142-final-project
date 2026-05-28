@@ -1,19 +1,13 @@
 import { ShoppingCart } from "lucide-react";
 import LaneCard from "./LaneCard";
 
-function LaneBoard({ lanes, iteration, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
+function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
   return (
     <section className="lane-board">
       <div className="lane-board-header">
         <div className="section-title">
           <ShoppingCart size={18} />
           <h2>Lane Status</h2>
-        </div>
-
-        <div className="simulation-meta">
-          <span className="iteration-badge">
-            Iteration: {iteration}
-          </span>
         </div>
       </div>
 
