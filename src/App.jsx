@@ -8,20 +8,9 @@ import ComparisonTable from "./components/ComparisonTable";
 
 import { assignCustomersEFT } from "./algorithms/eftGreedy";
 import { assignCustomerSLF } from "./algorithms/shortestLineFirst";
-import {
-  createLane,
-  createLanes,
-  withLaneSpeed,
-  calculateLaneNextAvailable,
-} from "./models/lane";
-import {
-  createPendingCustomerDraft,
-  createPendingCustomer,
-  updatePendingCustomerDraft,
-  updatePendingCustomer as updatePendingCustomerModel,
-  togglePendingCustomerMinimized,
-  createLaneCustomer,
-} from "./models/customer";
+import { createLane, createLanes, withLaneSpeed, calculateLaneNextAvailable, removeLaneCustomer, addLaneCustomer } from "./models/lane";
+import { createPendingCustomerDraft, createPendingCustomer, updatePendingCustomerDraft, togglePendingCustomerMinimized, 
+  createLaneCustomer, updatePendingCustomer as updatePendingCustomerModel } from "./models/customer";
 import { enqueue, moveItem, updateItem, removeItem } from "./models/queue";
 import { generateMetricsReport, compareMetrics } from "./utils/metrics";
 
@@ -103,10 +92,7 @@ function App() {
       const metricsEFTReport = generateMetricsReport(processedLanes);
       setMetricsEFT(metricsEFTReport);
 
-      const lanesWithSLF = assignPendingCustomersToLanesWithSLF(
-        prevLanes,
-        pendingCustomers
-      );
+      const lanesWithSLF = assignPendingCustomersToLanesWithSLF(prevLanes, pendingCustomers);
       const processedLanesSLF = processLaneIteration(lanesWithSLF);
       const metricsSLFReport = generateMetricsReport(processedLanesSLF);
       setMetricsSLF(metricsSLFReport);
@@ -114,10 +100,7 @@ function App() {
       const comp = compareMetrics(metricsSLFReport, metricsEFTReport);
       setComparison(comp);
 
-      const savedTime = Math.max(
-        0,
-        metricsSLFReport.makespan - metricsEFTReport.makespan
-      );
+      const savedTime = Math.max( 0, metricsSLFReport.makespan - metricsEFTReport.makespan);
       setTimeSaved(Number(savedTime.toFixed(2)));
 
       return processedLanes;
@@ -177,24 +160,16 @@ function App() {
     setLanes((prevLanes) => {
       if (count > prevLanes.length) {
         const laneDiff = count - prevLanes.length;
-        const additionalLanes = Array.from({ length: laneDiff }, (_, index) =>
-          createLane(prevLanes.length + index + 1)
-        );
-
+        const additionalLanes = Array.from({ length: laneDiff }, (_, index) => createLane(prevLanes.length + index + 1));
         return [...prevLanes, ...additionalLanes];
       }
-
       return prevLanes.slice(0, count);
     });
   }
 
   // Updates cashier speed for one lane
   function handleSpeedChange(laneId, value) {
-    setLanes((prevLanes) =>
-      prevLanes.map((lane) =>
-        lane.id === laneId ? withLaneSpeed(lane, value) : lane
-      )
-    );
+    setLanes((prevLanes) => prevLanes.map((lane) => lane.id === laneId ? withLaneSpeed(lane, value) : lane));
   }
 
   // Updates the staged customer form
@@ -216,10 +191,7 @@ function App() {
     });
 
     setPendingCustomers((prev) =>
-      enqueue(
-        prev.map((customer) => togglePendingCustomerMinimized(customer, true)),
-        newCustomer
-      )
+      enqueue(prev.map((customer) => togglePendingCustomerMinimized(customer, true)), newCustomer)
     );
 
     setCustomerId((prev) => prev + 1);
@@ -366,30 +338,21 @@ function App() {
   }
 
   // Removes a mutable customer from a lane
-  function removeLaneCustomer(laneId, customerId) {
+  function removeFromLane(laneId, customerId) {
     setLanes((prevLanes) =>
-      prevLanes.map((lane) => {
-        if (lane.id !== laneId) return lane;
+    prevLanes.map((lane) => {
+      if (lane.id !== laneId) return lane;
 
-        const targetCustomer = lane.customers.find(
-          (customer) => customer.id === customerId
-        );
+      const targetCustomer = lane.customers.find(
+        (customer) => customer.id === customerId
+      );
 
-        if (!targetCustomer || targetCustomer.processed || targetCustomer.active) {
-          return lane;
-        }
+      if (!targetCustomer || targetCustomer.processed || targetCustomer.active) {
+        return lane;
+      }
 
-        const updatedCustomers = lane.customers.filter(
-          (customer) => customer.id !== customerId
-        );
-
-        return {
-          ...lane,
-          customers: updatedCustomers,
-          nextAvailable: calculateLaneNextAvailable(lane.speed, updatedCustomers),
-        };
-      })
-    );
+      return removeLaneCustomer(lane, customerId);
+    }));
   }
 
   // Moves a mutable customer between lanes
@@ -405,34 +368,9 @@ function App() {
       const customer = sourceLane.customers.find((item) => item.id === customerId);
       if (!customer || customer.processed || customer.active) return prevLanes;
 
-      const updatedSourceCustomers = sourceLane.customers.filter(
-        (item) => item.id !== customerId
-      );
-      const updatedTargetCustomers = [...targetLane.customers, customer];
-
       return prevLanes.map((lane) => {
-        if (lane.id === sourceLaneId) {
-          return {
-            ...lane,
-            customers: updatedSourceCustomers,
-            nextAvailable: calculateLaneNextAvailable(
-              lane.speed,
-              updatedSourceCustomers
-            ),
-          };
-        }
-
-        if (lane.id === targetLaneId) {
-          return {
-            ...lane,
-            customers: updatedTargetCustomers,
-            nextAvailable: calculateLaneNextAvailable(
-              lane.speed,
-              updatedTargetCustomers
-            ),
-          };
-        }
-
+        if (lane.id === sourceLaneId) return removeLaneCustomer(lane, customerId);
+        if (lane.id === targetLaneId) return addLaneCustomer(lane, customer);
         return lane;
       });
     });
@@ -500,7 +438,7 @@ function App() {
           <LaneBoard
             lanes={lanes}
             onSpeedChange={handleSpeedChange}
-            onRemoveLaneCustomer={removeLaneCustomer}
+            onRemoveLaneCustomer={removeFromLane}
             onMoveLaneCustomer={moveLaneCustomer}
             onReorderLaneCustomer={reorderLaneCustomer}
           />
