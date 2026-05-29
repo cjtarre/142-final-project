@@ -11,32 +11,20 @@ function ControlPanel({
   onUpdatePendingCustomer,
   onRemovePendingCustomer,
   onMovePendingCustomer,
-  algorithm,
-  setAlgorithm,
+  selectedDemo,
+  setSelectedDemo,
+  onLoadDemo,
   timeSaved,
 }) {
-  const handleAddCustomerClick = () => {
+  function handleAddCustomerClick() {
     onStageCustomer();
-  };
+  }
 
   return (
     <aside className="control-panel">
       <div className="section-title">
         <Settings size={18} />
         <h2>Simulation Settings</h2>
-      </div>
-
-      <div className="time-saved-box">
-        <h3>Time Saved</h3>
-        <p className="time-saved-value">{timeSaved} min</p>
-      </div>
-
-      <div className="form-group">
-        <label>Algorithm</label>
-        <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
-          <option value="shortest">Shortest Line</option>
-          <option value="eft">QueueFlow Optimizer (EFT)</option>
-        </select>
       </div>
 
       <div className="form-group inline">
@@ -49,6 +37,25 @@ function ControlPanel({
           value={numberOfLanes}
           onChange={(e) => onSetLaneCount(Math.max(1, Number(e.target.value)))}
         />
+      </div>
+
+      <div className="demo-section">
+        <label className="demo-label">Test Case</label>
+
+        <select
+          value={selectedDemo}
+          onChange={(e) => setSelectedDemo(e.target.value)}
+          className="demo-select"
+        >
+          <option value="improvement">EFT Improvement</option>
+          <option value="equalSpeeds">Equal Speeds</option>
+          <option value="slowCashier">Slow Cashier Bottleneck</option>
+          <option value="singleLane">Single Lane</option>
+        </select>
+
+        <button type="button" className="demo-btn" onClick={onLoadDemo}>
+          Load Test Case
+        </button>
       </div>
 
       <div className="customer-input-drawer">
@@ -87,25 +94,32 @@ function ControlPanel({
 
       <div className="pending-list">
         <h3>Staged Customers</h3>
+
         {pendingCustomers.length === 0 ? (
-          <p className="pending-empty">No customer staged yet. Add one to queue it for the next start.</p>
+          <p className="pending-empty">No customer staged yet.</p>
         ) : (
           pendingCustomers.map((customer, index) => (
             <div
               key={customer.tempId}
-              className={`pending-card ${customer.minimized ? "minimized" : "expanded"}`}
+              className={`pending-card ${
+                customer.minimized ? "minimized" : "expanded"
+              }`}
             >
               <div className="pending-card-header">
                 <button
                   type="button"
-                  className={`pending-toggle ${customer.minimized ? "collapsed" : "expanded"}`}
+                  className={`pending-toggle ${
+                    customer.minimized ? "collapsed" : "expanded"
+                  }`}
                   onClick={() => onSelectPendingCustomer(customer.tempId)}
                 >
                   {customer.minimized ? (
                     <>
                       <ChevronDown size={16} className="toggle-icon" />
                       <span className="customer-name">{customer.name}</span>
-                      <span className="customer-items-count">{customer.items}</span>
+                      <span className="customer-items-count">
+                        {customer.items} items
+                      </span>
                     </>
                   ) : (
                     <>
@@ -114,6 +128,7 @@ function ControlPanel({
                     </>
                   )}
                 </button>
+
                 <div className="pending-card-actions">
                   <button
                     type="button"
@@ -124,6 +139,7 @@ function ControlPanel({
                   >
                     ↑
                   </button>
+
                   <button
                     type="button"
                     className="pending-action-btn"
@@ -133,6 +149,7 @@ function ControlPanel({
                   >
                     ↓
                   </button>
+
                   <button
                     type="button"
                     className="pending-action-btn remove-btn"
@@ -151,16 +168,29 @@ function ControlPanel({
                     <input
                       type="text"
                       value={customer.name}
-                      onChange={(e) => onUpdatePendingCustomer(customer.tempId, "name", e.target.value)}
+                      onChange={(e) =>
+                        onUpdatePendingCustomer(
+                          customer.tempId,
+                          "name",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
+
                   <div className="form-group">
                     <label>Items</label>
                     <input
                       type="number"
                       min="1"
                       value={customer.items}
-                      onChange={(e) => onUpdatePendingCustomer(customer.tempId, "items", e.target.value)}
+                      onChange={(e) =>
+                        onUpdatePendingCustomer(
+                          customer.tempId,
+                          "items",
+                          e.target.value
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -170,11 +200,17 @@ function ControlPanel({
         )}
       </div>
 
+      <div className="time-saved-box">
+        <h3>Time Saved</h3>
+        <p className="time-saved-value">{timeSaved} min</p>
+      </div>
+
       <div className="members-box">
         <div className="members-title">
           <Users size={14} />
           <h3>Project Members</h3>
         </div>
+
         <p>Arellano</p>
         <p>Sumergido</p>
         <p>Tarre</p>

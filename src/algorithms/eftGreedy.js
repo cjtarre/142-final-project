@@ -1,75 +1,146 @@
-import { MinHeap } from './minHeap.js';
+import { MinHeap } from "./minHeap";
 
 /**
- * Assigns a customer to a lane using the EFT (Earliest Finish Time) Greedy algorithm
- * with heap-based selection for O(log L) lane lookup complexity.
- * 
- * Algorithm:
- * 1. Create a min-heap of lanes keyed by nextAvailability (finish time)
- * 2. Extract the lane with minimum finish time - O(log L)
- * 3. Calculate service time: serviceTime = customer.items / lane.speed
- * 4. Update lane's finish time: newFinish = currentFinish + serviceTime
- * 5. Return updated lanes with customer assigned
- * 
- * Overall complexity: O(N log L) where N = customers, L = lanes
+ * Assigns customers to checkout lanes using the
+ * Earliest Finish Time (EFT) Greedy Algorithm.
+ *
+ * Optimized using a Min-Heap priority queue.
+ *
+ * Complexity:
+ * - Heap initialization: O(L log L)
+ * - Customer assignments: O(N log L)
+ * - Overall: O(N log L)
+ *
+ * Greedy Strategy:
+ * Always assign the next customer to the lane
+ * with the smallest projected finish time.
  */
-export function assignCustomerEFT(lanes, customer) {
-    // Create min-heap with lanes keyed by nextAvailability
-    // Use speed as tie-breaker: prefer faster lanes when finish times are equal
-    const laneHeap = new MinHeap((a, b) => {
-        const finishTimeA = Number(a.nextAvailable) || 0;
-        const finishTimeB = Number(b.nextAvailable) || 0;
-        
-        if (finishTimeA !== finishTimeB) {
-            return finishTimeA - finishTimeB;
-        }
-        
-        // Tie-breaker: prefer faster lane (higher speed = lower service time)
-        const speedA = Number(a.speed) || 1;
-        const speedB = Number(b.speed) || 1;
-        return speedB - speedA;  // Higher speed first
-    });
 
-    // Insert all lanes into heap - O(L log L)
-    lanes.forEach((lane) => laneHeap.insert(lane));
+/**
+ * Processes ALL staged customers using one persistent heap.
+ *
+ * @param {Array} lanes - Array of checkout lanes
+ * @param {Array} customers - Array of staged customers
+ * @returns {Array} Updated lanes with assigned customers
+ */
+export function assignCustomersEFT(lanes, customers) {
 
-    // Extract the lane with minimum finish time - O(log L)
+  /**
+   * Min-Heap comparator:
+   * 1. Prioritize smallest nextAvailable time
+   * 2. Tie-breaker: prioritize faster lane speed
+   */
+  const laneHeap = new MinHeap((a, b) => {
+
+    const finishA = Number(a.nextAvailable) || 0;
+    const finishB = Number(b.nextAvailable) || 0;
+
+    // Primary priority:
+    // Smaller finish time first
+    if (finishA !== finishB) {
+      return finishA - finishB;
+    }
+
+    // Tie-breaker:
+    // Faster cashier first
+    const speedA = Number(a.speed) || 1;
+    const speedB = Number(b.speed) || 1;
+
+    return speedB - speedA;
+  });
+
+  /**
+   * Clone lane state to avoid direct mutation
+   */
+  const updatedLanes = lanes.map((lane) => ({
+    ...lane,
+    nextAvailable: Number(lane.nextAvailable) || 0,
+    customers: [...lane.customers],
+  }));
+
+  /**
+   * Insert all lanes into heap
+   * Complexity: O(L log L)
+   */
+  updatedLanes.forEach((lane) => {
+    laneHeap.insert(lane);
+  });
+
+  /**
+   * Assign customers one-by-one
+   * Complexity: O(N log L)
+   */
+  for (const customer of customers) {
+
+    /**
+     * Extract lane with earliest finish time
+     */
     const bestLane = laneHeap.extractMin();
 
-    if (!bestLane) { return lanes;}
+    if (!bestLane) {
+      continue;
+    }
 
-    // Calculate projected finish time
+    /**
+     * Compute service time
+     *
+     * Formula:
+     * serviceTime = items / cashierSpeed
+     */
     const speed = Number(bestLane.speed) || 1;
-    const currentFinish = Number(bestLane.nextAvailable) || 0;
-    const serviceTime = customer.items / speed;
-    const newFinishTime = currentFinish + serviceTime;
 
-    // Update lanes with customer assigned to best lane
-    const updatedLanes = lanes.map((lane) => {
-        // OTHER lanes remain unchanged (except selected flag)
-        if (lane.id !== bestLane.id) {
-            return { ...lane, selected: false };
-        }
+    const serviceTime =
+      Number(customer.items) / speed;
 
-        // BEST lane gets customer
-        return {
-            ...lane,
-            selected: true,
-            nextAvailable: newFinishTime,
-            customers: [
-                ...lane.customers,
-                {
-                    id: customer.id,
-                    name: customer.name,
-                    items: customer.items,
-                    order: customer.order,
-                    showOrder: customer.showOrder,
-                    eta: newFinishTime.toFixed(2),
-                    serviceTime: serviceTime.toFixed(2),
-                },
-            ],
-        };
-    });
+    /**
+     * Compute updated finish time
+     *
+     * Formula:
+     * newFinish = currentFinish + serviceTime
+     */
+    const newFinishTime =
+      bestLane.nextAvailable + serviceTime;
 
-    return updatedLanes;
+    /**
+     * Create updated lane object
+     */
+    const updatedLane = {
+      ...bestLane,
+
+      nextAvailable: Number(
+        newFinishTime.toFixed(2)
+      ),
+
+      customers: [
+        ...bestLane.customers,
+
+        {
+          ...customer,
+
+          eta: Number(
+            newFinishTime.toFixed(2)
+          ),
+
+          serviceTime: Number(
+            serviceTime.toFixed(2)
+          ),
+
+          processed: false,
+          active: false,
+        },
+      ],
+    };
+
+    /**
+     * Reinsert updated lane into heap
+     */
+    laneHeap.insert(updatedLane);
+  }
+
+  /**
+   * Convert heap back to ordered lane array
+   */
+  return laneHeap
+    .toArray()
+    .sort((a, b) => a.id - b.id);
 }

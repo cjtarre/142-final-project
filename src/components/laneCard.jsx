@@ -6,11 +6,14 @@ function LaneCard({
   onMoveLaneCustomer,
   onReorderLaneCustomer,
 }) {
-  const util = Math.max(0, Math.min(1, utilization || 0));
+  const util = Math.max(0, Math.min(1, Number(utilization) || 0));
+  const utilizationPercent = Math.round(util * 100);
 
-  let utilClass = "util-green";
-  if (util >= 0.8) utilClass = "util-red";
-  else if (util >= 0.5) utilClass = "util-yellow";
+  let utilClass = "util-idle";
+
+  if (util > 0 && util < 0.5) utilClass = "util-green";
+  else if (util >= 0.5 && util < 0.8) utilClass = "util-yellow";
+  else if (util >= 0.8) utilClass = "util-red";
 
   function handleDrop(event) {
     event.preventDefault();
@@ -33,14 +36,13 @@ function LaneCard({
 
   return (
     <div
-      className={`lane-card ${lane.selected ? "selected-lane" : ""} ${utilClass}`}
+      className={`lane-card ${utilClass}`}
       onDragOver={(event) => event.preventDefault()}
       onDrop={handleDrop}
     >
       <div className="lane-card-header-row">
         <h3>
           LANE {lane.id}
-          {lane.selected && " (Selected)"}
         </h3>
 
         <div className="lane-meta">
@@ -66,10 +68,9 @@ function LaneCard({
         <div className="util-bar">
           <div
             className="util-fill"
-            style={{ width: `${Math.round(util * 100)}%` }}
+            style={{ width: `${utilizationPercent}%` }}
           />
         </div>
-        <small>{Math.round(util * 100)}%</small>
       </div>
 
       <div className="customer-list">
@@ -77,7 +78,7 @@ function LaneCard({
           <div className="empty-queue">No customers in lane</div>
         ) : (
           lane.customers.map((customer, index) => {
-            const totalItemsForCustomer = customer.totalItems ?? 0;
+            const totalItemsForCustomer = customer.totalItems ?? customer.items ?? 0;
             const processedItemsForCustomer = customer.processedItems ?? 0;
             const customerPercent = totalItemsForCustomer > 0
               ? Math.round(customer.processed ? 100 : (processedItemsForCustomer / totalItemsForCustomer) * 100)
