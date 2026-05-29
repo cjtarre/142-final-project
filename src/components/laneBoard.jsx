@@ -3,6 +3,7 @@ import LaneCard from "./LaneCard";
 import { computeUtilizations } from "../utils/metrics";
 
 function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCustomer, onReorderLaneCustomer }) {
+  const utilizationMap = computeUtilizations(lanes);
   return (
     <section className="lane-board">
       <div className="lane-board-header">
@@ -17,7 +18,7 @@ function LaneBoard({ lanes, onSpeedChange, onRemoveLaneCustomer, onMoveLaneCusto
           <LaneCard
             key={lane.id}
             lane={lane}
-            utilizationMap={computeUtilizations(lanes)}
+            utilization={utilizationMap[lane.id]}
             onSpeedChange={onSpeedChange}
             onRemoveLaneCustomer={onRemoveLaneCustomer}
             onMoveLaneCustomer={onMoveLaneCustomer}

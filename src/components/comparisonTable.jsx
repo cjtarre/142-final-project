@@ -6,6 +6,11 @@ function ComparisonTable({ metricsEFT, metricsSLF, comparison }) {
     return typeof value === "number" ? value.toFixed(2) : value;
   };
 
+  const formatPercent = (value, prefix = true) => {
+    if (value === null || value === undefined || value === "NaN") return "--";
+    return prefix ? `+${value}%` : `${value}%`;
+  };
+
   return (
     <section className="comparison-table">
       <div className="section-title">
@@ -19,7 +24,7 @@ function ComparisonTable({ metricsEFT, metricsSLF, comparison }) {
             <th>Metric</th>
             <th>Shortest Line First</th>
             <th>EFT Greedy</th>
-            <th>Improvement (%)</th>
+            <th>Improvement</th>
           </tr>
         </thead>
 
@@ -28,35 +33,21 @@ function ComparisonTable({ metricsEFT, metricsSLF, comparison }) {
             <td>Makespan (Total Time)</td>
             <td>{metricsSLF ? formatValue(metricsSLF.makespan) : "--"}</td>
             <td>{metricsEFT ? formatValue(metricsEFT.makespan) : "--"}</td>
-            <td>
-              {comparison?.makespanImprovement
-                ? `+${comparison.makespanImprovement}%`
-                : "--"}
-            </td>
+            <td>{formatPercent(comparison?.makespanImprovement)}</td>
           </tr>
 
           <tr>
             <td>Average Wait Time</td>
             <td>{metricsSLF ? formatValue(metricsSLF.averageWaitTime) : "--"}</td>
             <td>{metricsEFT ? formatValue(metricsEFT.averageWaitTime) : "--"}</td>
-            <td>
-              {comparison?.waitTimeImprovement
-                ? `+${comparison.waitTimeImprovement}%`
-                : "--"}
-            </td>
+            <td>{formatPercent(comparison?.waitTimeImprovement)}</td>
           </tr>
 
           <tr>
             <td>Total Idle Time</td>
             <td>{metricsSLF ? formatValue(metricsSLF.totalIdleTime) : "--"}</td>
             <td>{metricsEFT ? formatValue(metricsEFT.totalIdleTime) : "--"}</td>
-            <td>
-              {comparison?.idleTimeReduction === "-Infinity"
-                ? "--"
-                : comparison?.idleTimeReduction
-                ? `${comparison.idleTimeReduction}%`
-                : "--"}
-            </td>
+            <td>{formatPercent(comparison?.idleTimeReduction, false)}</td>
           </tr>
 
           <tr>
@@ -72,12 +63,8 @@ function ComparisonTable({ metricsEFT, metricsSLF, comparison }) {
 
           <tr>
             <td>Average Queue Length</td>
-            <td>
-              {metricsSLF ? formatValue(metricsSLF.averageQueueLength) : "--"}
-            </td>
-            <td>
-              {metricsEFT ? formatValue(metricsEFT.averageQueueLength) : "--"}
-            </td>
+            <td>{metricsSLF ? formatValue(metricsSLF.averageQueueLength) : "--"}</td>
+            <td>{metricsEFT ? formatValue(metricsEFT.averageQueueLength) : "--"}</td>
             <td>--</td>
           </tr>
         </tbody>
