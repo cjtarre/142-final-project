@@ -1,4 +1,4 @@
-import { Settings, UserPlus, Users } from "lucide-react";
+import { Settings, UserPlus, Users, ChevronDown, ChevronUp } from "lucide-react";
 
 function ControlPanel({
   numberOfLanes,
@@ -16,32 +16,26 @@ function ControlPanel({
   onLoadDemo,
   timeSaved,
 }) {
-
-  // Stage customer into pending queue
   function handleAddCustomerClick() {
     onStageCustomer();
   }
 
   return (
     <aside className="control-panel">
-
       <div className="section-title">
         <Settings size={18} />
         <h2>Simulation Settings</h2>
       </div>
 
-      <div className="form-group">
+      <div className="form-group inline">
         <label>Number of Lanes</label>
-
         <input
           type="number"
           min="1"
           max="100"
           className="lane-count-input"
           value={numberOfLanes}
-          onChange={(e) =>
-            onSetLaneCount(Math.max(1, Number(e.target.value)))
-          }
+          onChange={(e) => onSetLaneCount(Math.max(1, Number(e.target.value)))}
         />
       </div>
 
@@ -59,17 +53,12 @@ function ControlPanel({
           <option value="singleLane">Single Lane</option>
         </select>
 
-        <button
-          type="button"
-          className="demo-btn"
-          onClick={onLoadDemo}
-        >
+        <button type="button" className="demo-btn" onClick={onLoadDemo}>
           Load Test Case
         </button>
       </div>
 
       <div className="customer-input-drawer">
-
         <button
           className="add-btn drawer-toggle"
           type="button"
@@ -80,34 +69,26 @@ function ControlPanel({
         </button>
 
         <div className="drawer-content">
-
           <div className="form-group">
             <label>Name</label>
-
             <input
               type="text"
               placeholder="Customer name"
               value={customerDraft.name}
-              onChange={(e) =>
-                onChangeCustomerDraft("name", e.target.value)
-              }
+              onChange={(e) => onChangeCustomerDraft("name", e.target.value)}
             />
           </div>
 
           <div className="form-group">
             <label>Items</label>
-
             <input
               type="number"
               min="1"
               placeholder="Enter item count"
               value={customerDraft.items}
-              onChange={(e) =>
-                onChangeCustomerDraft("items", e.target.value)
-              }
+              onChange={(e) => onChangeCustomerDraft("items", e.target.value)}
             />
           </div>
-
         </div>
       </div>
 
@@ -115,9 +96,7 @@ function ControlPanel({
         <h3>Staged Customers</h3>
 
         {pendingCustomers.length === 0 ? (
-          <p className="pending-empty">
-            No customer staged yet.
-          </p>
+          <p className="pending-empty">No customer staged yet.</p>
         ) : (
           pendingCustomers.map((customer, index) => (
             <div
@@ -126,29 +105,37 @@ function ControlPanel({
                 customer.minimized ? "minimized" : "expanded"
               }`}
             >
-
               <div className="pending-card-header">
-
                 <button
                   type="button"
-                  className="pending-toggle"
-                  onClick={() =>
-                    onSelectPendingCustomer(customer.tempId)
-                  }
+                  className={`pending-toggle ${
+                    customer.minimized ? "collapsed" : "expanded"
+                  }`}
+                  onClick={() => onSelectPendingCustomer(customer.tempId)}
                 >
-                  <span>{customer.name}</span>
-                  <span>{customer.items} items</span>
+                  {customer.minimized ? (
+                    <>
+                      <ChevronDown size={16} className="toggle-icon" />
+                      <span className="customer-name">{customer.name}</span>
+                      <span className="customer-items-count">
+                        {customer.items} items
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronUp size={16} className="toggle-icon" />
+                      <span className="toggle-label">Edit customer</span>
+                    </>
+                  )}
                 </button>
 
                 <div className="pending-card-actions">
-
                   <button
                     type="button"
                     className="pending-action-btn"
-                    onClick={() =>
-                      onMovePendingCustomer(customer.tempId, "up")
-                    }
+                    onClick={() => onMovePendingCustomer(customer.tempId, "up")}
                     disabled={index === 0}
+                    title="Move up"
                   >
                     ↑
                   </button>
@@ -156,10 +143,9 @@ function ControlPanel({
                   <button
                     type="button"
                     className="pending-action-btn"
-                    onClick={() =>
-                      onMovePendingCustomer(customer.tempId, "down")
-                    }
+                    onClick={() => onMovePendingCustomer(customer.tempId, "down")}
                     disabled={index === pendingCustomers.length - 1}
+                    title="Move down"
                   >
                     ↓
                   </button>
@@ -167,22 +153,18 @@ function ControlPanel({
                   <button
                     type="button"
                     className="pending-action-btn remove-btn"
-                    onClick={() =>
-                      onRemovePendingCustomer(customer.tempId)
-                    }
+                    onClick={() => onRemovePendingCustomer(customer.tempId)}
+                    title="Remove"
                   >
                     ×
                   </button>
-
                 </div>
               </div>
 
               {!customer.minimized && (
                 <div className="pending-details">
-
                   <div className="form-group">
                     <label>Name</label>
-
                     <input
                       type="text"
                       value={customer.name}
@@ -198,7 +180,6 @@ function ControlPanel({
 
                   <div className="form-group">
                     <label>Items</label>
-
                     <input
                       type="number"
                       min="1"
@@ -212,7 +193,6 @@ function ControlPanel({
                       }
                     />
                   </div>
-
                 </div>
               )}
             </div>
@@ -220,14 +200,12 @@ function ControlPanel({
         )}
       </div>
 
-      {/* Live EFT vs SLF efficiency comparison */}
       <div className="time-saved-box">
         <h3>Time Saved</h3>
         <p className="time-saved-value">{timeSaved} min</p>
       </div>
 
       <div className="members-box">
-
         <div className="members-title">
           <Users size={14} />
           <h3>Project Members</h3>
@@ -236,7 +214,6 @@ function ControlPanel({
         <p>Arellano</p>
         <p>Sumergido</p>
         <p>Tarre</p>
-
       </div>
     </aside>
   );

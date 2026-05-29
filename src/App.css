@@ -65,7 +65,6 @@ body {
 .controls,
 .header-title-row,
 .lane-meta,
-.pending-card-actions,
 .customer-card-actions,
 .simulation-meta,
 .section-title,
@@ -73,6 +72,25 @@ body {
 .customer-card-header,
 .pending-card-header {
   gap: 10px;
+}
+
+.pending-card-actions {
+  gap: 0;
+}
+
+.pending-card-header {
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pending-card-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-card-header-placeholder {
+  width: 100%;
+  min-height: 1px;
 }
 
 .pending-card-header,
@@ -275,7 +293,13 @@ body {
 }
 
 .pending-action-btn {
-  padding: 6px 10px;
+  padding: 4px 6px;
+  font-size: 12px;
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .customer-action-btn,
@@ -341,9 +365,26 @@ h2 {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-
+  gap: 8px;
+  margin-top: 6px;
   margin-bottom: 6px;
+}
+
+.form-group.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group.inline label {
+  margin: 0;
+  min-width: fit-content;
+}
+
+.form-group.inline input,
+.form-group.inline select {
+  flex: 1;
+  max-width: 100px;
 }
 
 .form-group input,
@@ -396,6 +437,23 @@ h2 {
   padding: 14px;
   width: 100%;
   overflow: hidden;
+  border: 1px solid #e5e7eb;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.lane-card.util-green {
+  background-color: #f0fdf4;
+  border-color: #a7f3d0;
+}
+
+.lane-card.util-yellow {
+  background-color: #fefce8;
+  border-color: #fde68a;
+}
+
+.lane-card.util-red {
+  background-color: #fef2f2;
+  border-color: #fecaca;
 }
 
 .lane-card h3 {
@@ -403,6 +461,33 @@ h2 {
   font-size: 18px;
   font-weight: 800;
   color: #1d4ed8;
+}
+
+.lane-utilization-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.lane-utilization-label.util-green {
+  background-color: rgba(34, 197, 94, 0.16);
+  color: #166534;
+}
+
+.lane-utilization-label.util-yellow {
+  background-color: rgba(245, 158, 11, 0.16);
+  color: #92400e;
+}
+
+.lane-utilization-label.util-red {
+  background-color: rgba(239, 68, 68, 0.16);
+  color: #991b1b;
 }
 
 .selected-lane {
@@ -434,23 +519,44 @@ h2 {
   min-width: 140px;
 
   padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background-color: white;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease;
 }
 
 .customer-card.processing {
   border-color: #2563eb;
   background-color: #eff6ff;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+
+.customer-card.processing .customer-card-header p {
+  color: #1d4ed8;
+}
+
+.customer-card.processing .customer-status {
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
 .customer-card.processed {
-  border-color: #94a3b8;
-  background-color: #e2e8f0;
-  color: #475569;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.3);
+  border-color: #cbd5e1;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  opacity: 0.72;
 }
 
 .customer-card.processed p,
-.customer-card.processed span {
-  color: #475569;
+.customer-card.processed span,
+.customer-card.processed .customer-order,
+.customer-card.processed .customer-status {
+  color: #6b7280;
+}
+
+.customer-card.processed .customer-status {
+  background-color: #e5e7eb;
+  color: #6b7280;
 }
 
 .customer-card.processed .customer-order {
@@ -475,10 +581,46 @@ h2 {
   display: block;
 }
 
-.customer-card-controls {
-  margin-top: 12px;
+.customer-card-progress {
+  margin-top: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.customer-card-progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.customer-card-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+.customer-card-footer {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  margin-top: 12px;
+}
+
+.customer-card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.customer-order.badge-right {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .customer-card-controls .customer-action-btn,
@@ -528,6 +670,7 @@ h2 {
 
 .pending-list {
   margin-top: 12px;
+  margin-bottom: 12px;
 
   display: flex;
   flex-direction: column;
@@ -540,21 +683,72 @@ h2 {
 
 .pending-toggle {
   width: 100%;
-  padding: 0;
+  padding: 8px 10px;
 
   border: none;
   background: transparent;
 
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
   font-weight: 700;
   color: #1f2937;
 
   cursor: pointer;
+  min-width: 0;
+  text-align: left;
 }
+
+.pending-toggle.collapsed {
+  justify-content: space-between;
+}
+
+.pending-toggle.expanded {
+  justify-content: flex-start;
+}
+
+.pending-toggle .toggle-icon {
+  flex-shrink: 0;
+  color: #6b7280;
+}
+
+.pending-toggle span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.pending-toggle .customer-name {
+  flex: 1;
+}
+
+.pending-toggle .customer-items-count {
+  color: #3b82f6;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.pending-toggle .toggle-label {
+  color: #475569;
+  font-size: 13px;
+  margin-left: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pending-card-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-card-header-placeholder {
+  width: 100%;
+  min-height: 1px;
+}
+
 
 .logic-box {
   margin-top: 24px;
@@ -839,6 +1033,7 @@ h2 {
 
 .time-saved-box {
   margin-top: 18px;
+  margin-bottom: 18px;
   padding: 12px;
   border-radius: 10px;
   background-color: #ecfeff;
