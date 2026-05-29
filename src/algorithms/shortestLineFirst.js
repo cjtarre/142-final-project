@@ -35,9 +35,7 @@ export function assignCustomerSLF(lanes, customer) {
         }
     }
 
-    if (!bestLane) {
-        return lanes;
-    }
+    if (!bestLane) return lanes;
 
     // Calculate service time and finish time
     const speed = Number(bestLane.speed) || 1;
@@ -47,10 +45,7 @@ export function assignCustomerSLF(lanes, customer) {
 
     // Update lanes with customer assigned to shortest line
     const updatedLanes = lanes.map((lane) => {
-        if (lane.id !== bestLane.id) {
-            return { ...lane, selected: false };
-        }
-
+        if (lane.id !== bestLane.id) return { ...lane, selected: false };
         return {
             ...lane,
             selected: true,

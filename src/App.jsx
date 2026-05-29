@@ -25,27 +25,37 @@ function App() {
   const [metricsEFT, setMetricsEFT] = useState(null);
   const [metricsSLF, setMetricsSLF] = useState(null);
   const [comparison, setComparison] = useState(null);
+  const [timeSaved, setTimeSaved] = useState(0);
 
   function handleStart() {
     setLanes((prevLanes) => {
-      const assignedLanes = assignPendingCustomersToLanes(prevLanes, pendingCustomers);
-      const processedLanes = processLaneIteration(assignedLanes);
-      
-      // Calculate metrics for both EFT (used in main display) and SLF
-      const metricsEFTReport = generateMetricsReport(processedLanes);
-      setMetricsEFT(metricsEFTReport);
-      
-      // Also calculate SLF metrics for comparison
-      const lanesWithSLF = assignPendingCustomersToLanesWithSLF(prevLanes, pendingCustomers);
-      const processedLanesSLF = processLaneIteration(lanesWithSLF);
-      const metricsSLFReport = generateMetricsReport(processedLanesSLF);
-      setMetricsSLF(metricsSLFReport);
-      
-      // Calculate comparison
-      const comp = compareMetrics(metricsSLFReport, metricsEFTReport);
+      const selectedLanes = assignPendingCustomersToLanes(prevLanes, pendingCustomers);
+      const processedSelectedLanes = processLaneIteration(selectedLanes);
+      const selectedMetrics = generateMetricsReport(processedSelectedLanes);
+
+      const baselineLanes = algorithm === "eft"
+        ? assignPendingCustomersToLanesWithSLF(prevLanes, pendingCustomers)
+        : assignPendingCustomersToLanesWithEFT(prevLanes, pendingCustomers);
+      const processedBaselineLanes = processLaneIteration(baselineLanes);
+      const baselineMetrics = generateMetricsReport(processedBaselineLanes);
+
+      if (algorithm === "eft") {
+        setMetricsEFT(selectedMetrics);
+        setMetricsSLF(baselineMetrics);
+        const saved = Math.max(0, Number((baselineMetrics.makespan - selectedMetrics.makespan).toFixed(2)));
+        setTimeSaved(saved);
+      } else {
+        setMetricsSLF(selectedMetrics);
+        setMetricsEFT(baselineMetrics);
+        setTimeSaved(0);
+      }
+
+      const comp = algorithm === "eft"
+        ? compareMetrics(baselineMetrics, selectedMetrics)
+        : compareMetrics(baselineMetrics, selectedMetrics);
       setComparison(comp);
-      
-      return processedLanes;
+
+      return processedSelectedLanes;
     });
 
     if (pendingCustomers.length > 0) {
@@ -68,6 +78,7 @@ function App() {
     setMetricsEFT(null);
     setMetricsSLF(null);
     setComparison(null);
+    setTimeSaved(0);
   }
 
   function handleLaneCountChange(count) {
@@ -112,6 +123,60 @@ function App() {
     return true;
   }
 
+  function assignPendingCustomersToLanes(prevLanes, stagedCustomers) {
+    if (stagedCustomers.length === 0) {
+      return prevLanes;
+    }
+
+    let nextId = customerId;
+    const lanesWithoutOrderLabels = prevLanes.map((lane) => ({
+      ...lane,
+      customers: lane.customers.map((customer) => ({
+        ...customer,
+        showOrder: false,
+      })),
+    }));
+
+    return stagedCustomers.reduce((currentLanes, pending, index) => {
+      const newCustomer = createLaneCustomer({
+        id: nextId++,
+        name: pending.name,
+        items: pending.items,
+        order: index + 1,
+      });
+
+      return algorithm === "eft"
+        ? assignCustomerEFT(currentLanes, newCustomer)
+        : assignCustomerSLF(currentLanes, newCustomer);
+    }, lanesWithoutOrderLabels);
+  }
+
+  function assignPendingCustomersToLanesWithEFT(prevLanes, stagedCustomers) {
+    if (stagedCustomers.length === 0) {
+      return prevLanes;
+    }
+
+    let nextId = customerId;
+    const lanesWithoutOrderLabels = prevLanes.map((lane) => ({
+      ...lane,
+      customers: lane.customers.map((customer) => ({
+        ...customer,
+        showOrder: false,
+      })),
+    }));
+
+    return stagedCustomers.reduce((currentLanes, pending, index) => {
+      const newCustomer = createLaneCustomer({
+        id: nextId++,
+        name: pending.name,
+        items: pending.items,
+        order: index + 1,
+      });
+
+      return assignCustomerEFT(currentLanes, newCustomer);
+    }, lanesWithoutOrderLabels);
+  }
+
   function updatePendingCustomer(tempId, field, value) {
     setPendingCustomers((prev) =>
       updateItem(prev, tempId, (customer) => updatePendingCustomerModel(customer, field, value))
@@ -134,8 +199,8 @@ function App() {
     setPendingCustomers((prev) =>
       prev.map((customer) =>
         customer.tempId === tempId
-          ? togglePendingCustomerMinimized(customer, false)
-          : togglePendingCustomerMinimized(customer, true)
+          ? togglePendingCustomerMinimized(customer, !customer.minimized)
+          : customer
       )
     );
   }
@@ -195,31 +260,40 @@ function App() {
   function processLaneIteration(lanesToProcess) {
     return lanesToProcess.map((lane) => {
       let remainingCapacity = Number(lane.speed) || 1;
-      const nextCustomers = [];
 
-      const activeCustomers = lane.customers.filter((customer) => !customer.processed);
+      const nextCustomers = lane.customers
+        .filter((customer) => !customer.processed)
+        .map((customer) => {
+          const totalItems = customer.totalItems ?? customer.items;
+          const processedItems = customer.processedItems ?? 0;
+          if (remainingCapacity <= 0) {
+            return { ...customer, active: false };
+          }
 
-      for (const customer of activeCustomers) {
-        if (remainingCapacity <= 0) {
-          nextCustomers.push({ ...customer, active: false });
-          continue;
-        }
+          if (customer.items <= remainingCapacity) {
+            remainingCapacity -= customer.items;
+            return {
+              ...customer,
+              totalItems,
+              processedItems: totalItems,
+              processed: true,
+              active: false,
+            };
+          }
 
-        if (customer.items <= remainingCapacity) {
-          remainingCapacity -= customer.items;
-          nextCustomers.push({ ...customer, processed: true, active: false });
-          continue;
-        }
+          const itemsConsumed = remainingCapacity;
+          const remainingItems = Number((customer.items - itemsConsumed).toFixed(2));
+          remainingCapacity = 0;
 
-        const remainingItems = Number((customer.items - remainingCapacity).toFixed(2));
-        nextCustomers.push({
-          ...customer,
-          items: remainingItems,
-          active: true,
-          processed: false,
+          return {
+            ...customer,
+            items: remainingItems,
+            totalItems,
+            processedItems: processedItems + itemsConsumed,
+            active: true,
+            processed: false,
+          };
         });
-        remainingCapacity = 0;
-      }
 
       return {
         ...lane,
@@ -345,7 +419,7 @@ function App() {
           onMovePendingCustomer={movePendingCustomer}
           algorithm={algorithm}
           setAlgorithm={setAlgorithm}
-          timeSaved={0}
+          timeSaved={timeSaved}
         />
 
         <div className="content-area">

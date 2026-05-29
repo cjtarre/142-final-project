@@ -17,7 +17,7 @@ export function createPendingCustomer({ name, items, customerId }) {
     tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name: name.trim() || `Customer ${customerId}`,
     items: Number(items),
-    minimized: false,
+    minimized: true,
   };
 }
 
@@ -40,6 +40,8 @@ export function createLaneCustomer({ name, items, id, order }) {
     id,
     name,
     items,
+    totalItems: items,
+    processedItems: 0,
     order,
     showOrder: true,
     processed: false,
