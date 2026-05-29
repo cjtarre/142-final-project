@@ -1,4 +1,4 @@
-import { Settings, UserPlus, Users } from "lucide-react";
+import { Settings, UserPlus, Users, ChevronDown, ChevronUp } from "lucide-react";
 
 function ControlPanel({
   numberOfLanes,
@@ -26,7 +26,20 @@ function ControlPanel({
         <h2>Simulation Settings</h2>
       </div>
 
+      <div className="time-saved-box">
+        <h3>Time Saved</h3>
+        <p className="time-saved-value">{timeSaved} min</p>
+      </div>
+
       <div className="form-group">
+        <label>Algorithm</label>
+        <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+          <option value="shortest">Shortest Line</option>
+          <option value="eft">QueueFlow Optimizer (EFT)</option>
+        </select>
+      </div>
+
+      <div className="form-group inline">
         <label>Number of Lanes</label>
         <input
           type="number"
@@ -85,11 +98,21 @@ function ControlPanel({
               <div className="pending-card-header">
                 <button
                   type="button"
-                  className="pending-toggle"
+                  className={`pending-toggle ${customer.minimized ? "collapsed" : "expanded"}`}
                   onClick={() => onSelectPendingCustomer(customer.tempId)}
                 >
-                  <span>{customer.name}</span>
-                  <span>{customer.items} items</span>
+                  {customer.minimized ? (
+                    <>
+                      <ChevronDown size={16} className="toggle-icon" />
+                      <span className="customer-name">{customer.name}</span>
+                      <span className="customer-items-count">{customer.items}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronUp size={16} className="toggle-icon" />
+                      <span className="toggle-label">Edit customer</span>
+                    </>
+                  )}
                 </button>
                 <div className="pending-card-actions">
                   <button
@@ -97,6 +120,7 @@ function ControlPanel({
                     className="pending-action-btn"
                     onClick={() => onMovePendingCustomer(customer.tempId, "up")}
                     disabled={index === 0}
+                    title="Move up"
                   >
                     ↑
                   </button>
@@ -105,6 +129,7 @@ function ControlPanel({
                     className="pending-action-btn"
                     onClick={() => onMovePendingCustomer(customer.tempId, "down")}
                     disabled={index === pendingCustomers.length - 1}
+                    title="Move down"
                   >
                     ↓
                   </button>
@@ -112,6 +137,7 @@ function ControlPanel({
                     type="button"
                     className="pending-action-btn remove-btn"
                     onClick={() => onRemovePendingCustomer(customer.tempId)}
+                    title="Remove"
                   >
                     ×
                   </button>
@@ -142,19 +168,6 @@ function ControlPanel({
             </div>
           ))
         )}
-      </div>
-
-      <div className="form-group">
-        <label>Algorithm</label>
-        <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
-          <option value="shortest">Shortest Line</option>
-          <option value="eft">QueueFlow Optimizer (EFT)</option>
-        </select>
-      </div>
-
-      <div className="time-saved-box">
-        <h3>Time Saved</h3>
-        <p className="time-saved-value">{timeSaved} min</p>
       </div>
 
       <div className="members-box">
